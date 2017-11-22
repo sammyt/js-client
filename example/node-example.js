@@ -2,7 +2,7 @@
  * This example connects to a goshawk wssPort running on localhost:7895 and reads the value of the 'test' root.
  * Then it overwrites the value on the 'test' root to 'Boo!'.
  */
-const goshawkdb = require('..')
+const goshawkdb = require("..")
 
 // The cert and key should be taken from the .pem file for the user you wish to connect as.
 // The user should also have a root called 'test' for the rest of the test to work.  You can
@@ -40,19 +40,30 @@ AgNIADBFAiAy9NW3zE1ACYDWcp+qeTjQOfEtED3c/LKIXhrbzg2N/QIhANLb4crz
 -----END CERTIFICATE-----`
 }
 
-goshawkdb.connect("wss://localhost:7895/ws", connectionOptions).then((connection) => {
-	return connection.transact((txn) => {
-		const testRootRef = txn.root('test')
-		const root = txn.read(testRootRef)
-		console.log("test root contains", root.value, root.refs)
-		txn.write(testRootRef, Buffer.from("Boo!"), root.refs)
-	}).then(
-		() => {
-			console.log('transaction committed')
-			connection.close()
-		}, (e) => {
-			console.log('transaction failed because', e)
-			connection.close()
+goshawkdb
+	.connect("wss://localhost:7895/ws", connectionOptions)
+	.then(connection => {
+		return connection
+			.transact(txn => {
+				const testRootRef = txn.root("test")
+				const root = txn.read(testRootRef)
+				console.log("test root contains", root.value, root.refs)
+				txn.write(testRootRef, Buffer.from("Boo!"), root.refs)
+			})
+			.then(
+				() => {
+					console.log("transaction committed")
+					connection.close()
+				},
+				e => {
+					console.log("transaction failed because", e)
+					connection.close()
+				}
+			)
+	})
+	.then(
+		() => console.log("done"),
+		err => {
+			console.error("connection problem", err)
 		}
 	)
-}).then(() => console.log('done'), (err) => {console.error('connection problem', err)})

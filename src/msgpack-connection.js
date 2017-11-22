@@ -1,5 +1,5 @@
-const msgpack = require('msgpack-lite/dist/msgpack.min.js')
-const WebSocket = require('ws')
+const msgpack = require("msgpack-lite/dist/msgpack.min.js")
+const WebSocket = require("ws")
 
 /**
  * The websocket and Msgpack connection.
@@ -12,7 +12,7 @@ class MsgpackConnection {
 		this.connectionLabel = connectionLabel
 		this.websocket = null
 		this.options = {
-			codec: msgpack.createCodec({binarraybuffer: true})
+			codec: msgpack.createCodec({ binarraybuffer: true })
 		}
 		// all the callbacks!
 		this.onOpen = null
@@ -29,16 +29,24 @@ class MsgpackConnection {
 		// onEnd triggers onError or onClose.
 		this.onEnd = onEnd
 		this.onOpen = onOpen
-		const websocket = this.websocket = new WebSocket(this.url, undefined, connectionOptions)
-		websocket.binaryType = 'arraybuffer'
-		websocket.onopen = (evt) => {
+		const websocket = (this.websocket = new WebSocket(
+			this.url,
+			undefined,
+			connectionOptions
+		))
+		websocket.binaryType = "arraybuffer"
+		websocket.onopen = evt => {
 			console.debug(`Connection ${this.connectionLabel}: Connection Open`)
 			if (this.onOpen) {
 				this.onOpen(evt)
 			}
 		}
-		websocket.onclose = (evt) => {
-			console.debug(`Connection ${this.connectionLabel}: Connection Closed`, evt.code, evt.reason)
+		websocket.onclose = evt => {
+			console.debug(
+				`Connection ${this.connectionLabel}: Connection Closed`,
+				evt.code,
+				evt.reason
+			)
 			if (this.onEnd) {
 				this.onEnd(evt)
 			}
@@ -46,8 +54,12 @@ class MsgpackConnection {
 				this.onClose(evt)
 			}
 		}
-		websocket.onerror = (evt) => {
-			console.error(`Connection ${this.connectionLabel}: Connection Error`, evt.code, evt.reason)
+		websocket.onerror = evt => {
+			console.error(
+				`Connection ${this.connectionLabel}: Connection Error`,
+				evt.code,
+				evt.reason
+			)
 			if (this.onEnd) {
 				this.onEnd(evt)
 			}
@@ -55,8 +67,8 @@ class MsgpackConnection {
 				this.onError(evt)
 			}
 		}
-		websocket.onmessage = (messageEvent) => {
-			const data = msgpack.decode(new Uint8Array(messageEvent.data));
+		websocket.onmessage = messageEvent => {
+			const data = msgpack.decode(new Uint8Array(messageEvent.data))
 			console.debug(`${this.connectionLabel} <`, data)
 
 			if (this.onMessage) {
@@ -76,12 +88,12 @@ class MsgpackConnection {
 		const oldHandler = this.onMessage
 		const oldEndHandler = this.onEnd
 		return new Promise((resolve, reject) => {
-			this.onMessage = (msg) => {
+			this.onMessage = msg => {
 				resolve(msg)
 				this.onMessage = oldHandler
 				this.onEnd = oldEndHandler
 			}
-			this.onEnd = (evt) => {
+			this.onEnd = evt => {
 				this.onMessage = oldHandler
 				this.onEnd = oldEndHandler
 				reject(evt)
